@@ -1,0 +1,83 @@
+[  
+   {  
+      'name':'Uttarahalli Main Road',
+      'count':0,
+      'lat':12.9040515,
+      'lng':77.52564729999995,
+      'arr':'1',
+      'depa':'1'
+   },
+   {  
+      'name':'Bosch',
+      'count':0,
+      'lat':12.7971706,
+      'lng':77.42388230000006,
+      'arr':'1',
+      'depa':'1'
+   },
+   {  
+      'name':'Devegowda petrol bunk, Gowdanapalya, Uttarahalli Hobli, Bengaluru, Karnataka, India',
+      'count':'8',
+      'lat':12.9089929,
+      'lng':77.55802629999994,
+      'arr':'1',
+      'depa':'1'
+   },
+   {  
+      'name':'RNSIT, Channasandra, RR Nagar, Bengaluru, Karnataka, India',
+      'count':'10',
+      'lat':12.9021902,
+      'lng':77.51858199999992,
+      'arr':'1',
+      'depa':'1'
+   },
+   {  
+      'name':'Kathriguppe Circle, Phase 3, Banashankari, Bengaluru, Karnataka',
+      'count':'13',
+      'lat':12.9252588,
+      'lng':77.54993760000002,
+      'arr':'1',
+      'depa':'1'
+   }
+][  
+   {  
+      'name':'Uttarahalli Main Road',
+      'count':0,
+      'lat':12.9040515,
+      'lng':77.52564729999995,
+      'arr':'1',
+      'depa':'1'
+   },
+   {  
+      'name':'Bosch',
+      'count':0,
+      'lat':12.7971706,
+      'lng':77.42388230000006,
+      'arr':'1',
+      'depa':'1'
+   },
+   {  
+      'name':'Devegowda petrol bunk, Gowdanapalya, Uttarahalli Hobli, Bengaluru, Karnataka, India',
+      'count':'8',
+      'lat':12.9089929,
+      'lng':77.55802629999994,
+      'arr':'1',
+      'depa':'1'
+   },
+   {  
+      'name':'RNSIT, Channasandra, RR Nagar, Bengaluru, Karnataka, India',
+      'count':'10',
+      'lat':12.9021902,
+      'lng':77.51858199999992,
+      'arr':'1',
+      'depa':'1'
+   },
+   {  
+      'name':'Kathriguppe Circle, Phase 3, Banashankari, Bengaluru, Karnataka',
+      'count':'13',
+      'lat':12.9252588,
+      'lng':77.54993760000002,
+      'arr':'1',
+      'depa':'1'
+   }
+]

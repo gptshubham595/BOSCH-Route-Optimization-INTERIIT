@@ -1,0 +1,347 @@
+{% load static %}
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <script src="{% static 'js/jquery-3.1.1.min.js' %}"></script>  
+      <script src="{% static 'js/bootstrap.min.js' %}"></script>
+      <script src="{% static 'js/plotly-latest.min.js' %}"></script>
+  <script src="{% static 'js/plotly-latest.min.js' %}"></script>
+  <style>
+  #container {
+  position: relative;
+    }
+    #container #myDiv, #myDiv2 {
+      position: absolute;
+    }
+    #myDiv{
+      border: 1px solid black;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- <canvas id="myCanvas" width="400" height="400"></canvas> -->
+    
+  <div id="container">
+
+  <div id="myDiv" style="height: 620px; width: 100%"></div>
+  
+  <div id="myDiv2" style="height: 620px; opacity: 0.7; width: 96%"></div>
+</div>
+
+  
+      
+    <script type="text/javascript">
+      var layout2 = {
+
+  xaxis: {
+    zeroline: false,
+    showline: false,
+    autotick: false,
+    showgrid: false,
+     range: [0, 100],
+     "gridcolor": "rgb(255,255,255)"
+    },
+  yaxis: {
+    autotick: false,
+    showline: false,
+    showgrid: false,
+    zeroline: false,
+     range: [0, 100],
+     "gridcolor": "rgb(255,255,255)"
+    }
+};        
+
+
+        var layout = {
+          title: 'BUS ROUTES SIMULATION',
+          xaxis: {
+            title: 'x axis distance in km',
+            showline: false,
+           "gridcolor": "rgb(0,0,0)",
+           range: [0, 100]
+          },
+          yaxis: {
+            title: 'y axis distance in km',
+            showline: false,
+            "gridcolor": "rgb(0,0,0 )",
+            range: [0, 100]
+          },
+            
+        };
+        var loc={};
+        var myVar;
+        var index=0;
+        var starts=[0,0];
+        var ends=[0,0];
+        var busStart=[50,50],busEnd=[100,100];
+        var xCord=[];
+        var yCord=[];
+        var data = [];
+        var busStopsX=[];
+        var intermidiateNodeX=[];
+        var officeX=[];
+        var busStopsY=[];
+        var intermidiateNodeY=[];
+        var officeY=[];
+        function getUpdate(){
+          $.ajax({
+                url: "/simulator/",
+                data: {'csrfmiddlewaretoken':'{{csrf_token}}','updates':'ifUIisusedforupdatepassdatafromhere','index':index,'starts':JSON.stringify(starts),'ends':JSON.stringify(ends)},
+                cache: false,
+                type: "POST",
+                success: function(response) {
+                  console.log("SUCCESS");
+                  console.log(response);
+                  index=response['index'];
+                  data = [];
+                  busStopsX=[];
+                  intermidiateNodeX=[];
+                  officeX=[];
+                  busStopsY=[];
+                  intermidiateNodeY=[];
+                  officeY=[];
+                  for(var i=0;i<response['allRoutes'].length;i++){
+                    xCord=[];
+                    yCord=[];
+                    for(var j=0;j<response['allRoutes'][i].length;j++){
+                      xCord.push(response['allRoutes'][i][j]['lat']);
+                      yCord.push(response['allRoutes'][i][j]['lng']);
+                    }
+
+                    var route = {
+                      x: xCord,
+                      y: yCord,
+                      mode: 'lines',
+                      name: 'Route'+i.toString(),
+                      text: stopName,
+                      line: {
+                        color: 'rgb(0, 0, 0)',
+                        width: 2,
+                        dash: 'dot'
+                      },
+                      type: 'scatter'
+                    };
+                    // data.push(route);
+                  }
+                  for(var i=0;i<response['routes'].length;i++){
+                    console.log("getting route");                    
+                    var routeColor='rgb(';
+                    for(var j=0;j<3;j++){
+                      x=Math.floor(Math.random() * Math.floor(255));
+                      routeColor=routeColor+x.toString();
+                      if(j!=2){
+                        routeColor=routeColor+', '
+                      }
+                    }
+                    routeColor=routeColor+')';
+                    console.log(routeColor);
+                    var xCord=[];
+                    var yCord=[];
+                    var stopName=[];
+                    for(var j=0;j<response['routes'][i].length;j++){
+                      xCord.push(response['routes'][i][j]['lat']);
+                      yCord.push(response['routes'][i][j]['lng']);
+                      stopName.push('Stop'+j.toString());
+                      if(response['routes'][i][j]['type']==='intermediateStop'){
+                        intermidiateNodeX.push(response['routes'][i][j]['lat']);
+                        intermidiateNodeY.push(response['routes'][i][j]['lng']);
+                      }
+                      else{
+                        busStopsX.push(response['routes'][i][j]['lat']);
+                        busStopsY.push(response['routes'][i][j]['lng']);
+                      }
+                    }
+                    console.log(xCord);
+                    console.log(yCord);
+
+                  
+
+
+                    var route = {
+                      x: xCord,
+                      y: yCord,
+                      mode: 'lines',
+                      name: 'Route'+i.toString(),
+                      text: stopName,
+                      line: {
+                        color: routeColor,
+                        width: 2
+                      },
+                      type: 'scatter'
+                    };
+                    data.push(route);
+                  };
+                  var office = {
+                    x: [50],
+                    y: [50],
+                    mode: 'markers',
+                    name: 'Office',
+                    text: ['school'],
+                    marker: {
+                      color: 'rgb(205,165,0)',
+                      size: 40,
+                      line: {
+                        color: 'rgb(0,0,0)',
+                        width: 0.5,
+                        dash: 'dot',
+                      }
+                    }
+                  };
+                  var busStops = {
+                    x: busStopsX,
+                    y: busStopsY,
+                    mode: 'markers',
+                    name: 'Bus Stop',
+                    text: ['bus'],
+                    marker: {
+                      color: 'rgb(255,105,0)',
+                      size: 20
+                    }
+                  };
+                  var intermediateStop = {
+                    x: intermidiateNodeX,
+                    y: intermidiateNodeY,
+                    mode: 'markers',
+                    name: 'Intermidiate Stop',
+                    text: ['inter'],
+                    marker: {
+                      color: 'rgb(155,65,0)',
+                      size: 10
+                    }
+                  }
+                  data.push(office);
+                  data.push(busStops);
+                  data.push(intermediateStop);
+                  console.log(data);
+                  Plotly.newPlot('myDiv', data, layout, {showSendToCloud: true});
+                  // console.log(response['routes']) 
+
+
+                  //////////
+                  
+                  loc['xCord']=[];
+                  loc['yCord']=[];
+
+                  for(var i=0;i<xCord.length;i++){
+                    loc['xCord'].push(xCord[i]);
+                    loc['yCord'].push(yCord[i]);
+                  }
+                  for(var i=0;i<intermidiateNodeY.length;i++){
+                    loc['xCord'].push(intermidiateNodeX[i]);
+                    loc['yCord'].push(intermidiateNodeY[i]);
+                  }
+  
+  
+                  randomize(loc,12000);
+                  
+                  //////////
+                 },
+                error: function(xhr) {
+                  console.log("FAILED");
+                  console.log(xhr);
+                }
+              });
+
+              
+        }
+        
+        function randomize(loc,speed) {
+              var move_marker = {
+                    x: [xCord[0]],
+                    y: [yCord[0]],
+                    mode: 'markers',
+                    marker: {
+                      color: 'rgb(0,0,0)',
+                      size: 20,
+                      line: {
+                        color: 'rgb(0,0,0)',
+                        width: 0.5,
+                        dash: 'dot',
+                      }
+                    }
+                  };
+                  var move_marker2 = {
+                    x: [xCord[1]],
+                    y: [yCord[1]],
+                    mode: 'markers',
+                    marker: {
+                      color: 'rgb(0,0,0)',
+                      size: 20,
+                      line: {
+                        color: 'rgb(0,0,0)',
+                        width: 0.5,
+                        dash: 'dot',
+                      }
+                    }
+                  };
+                   
+                  Plotly.plot('myDiv2', [move_marker,move_marker2] ,layout2 , {showSendToCloud: true});
+
+                
+            // for(var j=fromY;j<toY;j+=0.2)
+             for(var i=0;i<loc['xCord'].length-1;i++){
+              
+              Plotly.animate(
+                "myDiv2",
+                {
+                  data: [{ x: [loc['xCord'][i]] , y:[loc['yCord'][i]]},{ x: [loc['xCord'][i+1]] , y:[loc['yCord'][i+1]]}],
+                  
+                  layout: layout2
+                },
+                {
+                  transition: {
+                    duration: speed,
+                    easing: "cubic-in-out"
+                  }
+                }
+              );
+
+              }
+
+              
+              Plotly.animate(
+                "myDiv2",
+                {
+                  data: [{ x: [loc['xCord'][loc['xCord'].length-2]] , y:[loc['yCord'][loc['yCord'].length-2]]},{ x: [loc['xCord'][loc['xCord'].length-1]] , y:[loc['yCord'][loc['xCord'].length-1]]}],
+                  
+                  layout: layout2
+                },
+                {
+                  transition: {
+                    duration: speed,
+                    easing: "cubic-in-out"
+                  }
+                }
+              );
+              
+              
+        }
+        function startSimulation(){
+            var d = new Date();
+            var t = d.toLocaleTimeString();
+            $("#demo").html(t); // display data on the page
+            var data =getUpdate();
+        }
+        function stopSimulation(){
+            clearInterval(myVar); // stop the simualtion
+        }
+        $(document).ready(function(){
+             startSimulation();
+            // stopSimulation();
+            // startSimulation();
+            myVar = setInterval(function(){
+              loc['xCord']=[];
+              loc['yCord']=[];
+              
+              startSimulation();
+
+
+            }, 12000);
+            // setInterval(function(){
+            // },20);
+        });
+    </script> 
+  </body>
+</html>

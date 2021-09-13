@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+
+{% block title %}Django Ajax Example{% endblock %}
+{% block stylesheet %}
+<style>
+body {
+  font-family: "Lato", sans-serif;
+}
+
+.sidenav {
+  height: 100%;
+  width: 0;
+  position: fixed;
+  z-index: 1;
+  top: 0;
+  left: 0;
+  background-color: #111;
+  overflow-x: hidden;
+  transition: 0.5s;
+  padding-top: 60px;
+}
+
+.sidenav a {
+  padding: 8px 8px 8px 32px;
+  text-decoration: none;
+  font-size: 25px;
+  color: #818181;
+  display: block;
+  transition: 0.3s;
+}
+
+.sidenav a:hover {
+  color: #f1f1f1;
+}
+
+.sidenav .closebtn {
+  position: absolute;
+  top: 0;
+  right: 25px;
+  font-size: 36px;
+  margin-left: 50px;
+}
+
+@media screen and (max-height: 450px) {
+  .sidenav {padding-top: 15px;}
+  .sidenav a {font-size: 18px;}
+}
+</style>
+{% endblock %}
+
+{% block content %}
+  <div id="mySidenav" class="sidenav">
+  <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
+  <table id="userTable" class="table table-striped">
+          <tr>
+            <th>Name</th>
+            <th>Address</th>
+            <th colspan="3">Age</th>
+          </tr>
+          {% for user in users %}
+          <tr id="user-{{user.id}}">
+              <td class="userName userData" name="name">{{user.name}}</td>
+              <td class="userAddress userData" name="address">{{user.address}}</td>
+              <td class="userAge userData" name="age">{{user.age}}</td>
+              <td align="center">
+                  <button class="btn btn-success form-control" onClick="editUser({{user.id}})" data-toggle="modal" data-target="#myModal")>EDIT</button>
+              </td>
+              <td align="center">
+                  <button class="btn btn-danger form-control" onClick="deleteUser({{user.id}})">DELETE</button>
+              </td>
+          </tr>
+          {% endfor %}
+        </table>
+  
+</div>
+<span style="font-size:30px;cursor:pointer" onclick="openNav()">&#9776; open</span>
+<div id="map" style="position:relative;width:100%;height: 550px;float:left;"></div>
+{% endblock %}
+
+{% block javascript %}
+  <script>
+function openNav() {
+  document.getElementById("mySidenav").style.width = "600px";
+}
+
+function closeNav() {
+  document.getElementById("mySidenav").style.width = "0";
+}
+</script>
+  <script>
+      var map;
+      var storeLocationDetails;
+      function initMap() {
+        var myLatLng = {lat: 20.593684, lng: 78.96288000000004};
+
+        map = new google.maps.Map(document.getElementById('map'), {
+          zoom: 4,
+          center: myLatLng
+        });
+
+        // var marker = new google.maps.Marker({
+        //   position: myLatLng,
+        //   map: map,
+        //   title: 'Hello World!'
+        // });
+
+        var input = document.getElementById('searchTextField');
+        var autocomplete = new google.maps.places.Autocomplete(input);
+        google.maps.event.addListener(autocomplete, 'place_changed', function () {
+            var place = autocomplete.getPlace();
+            document.getElementById('city2').value = place.name;
+            document.getElementById('cityLat').value = place.geometry.location.lat();
+            document.getElementById('cityLng').value = place.geometry.location.lng();
+        });
+        // var input2 = document.getElementById('form-id');
+        // var autocomplete2 = new google.maps.places.Autocomplete(input2);
+        // google.maps.event.addListener(autocomplete2, 'place_changed', function () {
+        //     var place = autocomplete2.getPlace();
+        // });
+      }
+      function addMarker(location) {
+          marker = new google.maps.Marker({
+              position: location,
+              map: map
+          });
+      }
+  </script>
+  <script async defer src="https://maps.googleapis.com/maps/api/js?key=YOUR_API4&libraries=places&callback=initMap">
+  </script>   
+{% endblock %}
+

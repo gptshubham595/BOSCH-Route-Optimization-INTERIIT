@@ -1,0 +1,1100 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Django Ajax Example{% endblock %}
+{% block stylesheet %}
+<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.18.1/moment.min.js"></script>
+<style type="text/css">
+  #wrapper { position: relative; }
+    #over_map { position: absolute; top: 10px; right: 1%; z-index: 99;  }
+</style>
+<link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
+
+<style type="text/css">
+  body {
+        color: #404E67;
+        background: #F5F7FA;
+    font-family: 'Open Sans', sans-serif;
+  }
+  .table-wrapper {
+    width: 300px;
+    background: #f2f2f2; 
+    box-shadow: 0 1px 1px rgba(0,0,0,.05);
+    }
+    .table-title {
+        padding-left: 10px;
+        padding-bottom: 2px;
+        margin: 0 0 10px;
+    }
+    .table-title h2 {
+        margin: 6px 0 0;
+        font-size: 22px;
+    }
+    .table-title .add-new {
+        float: right;
+    height: 30px;
+    font-weight: bold;
+    font-size: 12px;
+    text-shadow: none;
+    min-width: 100px;
+    border-radius: 50px;
+    line-height: 13px;
+    }
+  .table-title .add-new i {
+    margin-right: 4px;
+  }
+    table.table {
+        table-layout: fixed;
+    }
+    table.table tr th, table.table tr td {
+        border-color: #e9e9e9;
+    }
+    table.table th i {
+        font-size: 13px;
+        margin: 0 5px;
+        cursor: pointer;
+    }
+    table.table th:last-child {
+        width: 100px;
+    }
+    table.table td a {
+    cursor: pointer;
+        display: inline-block;
+        margin: 0 2px;
+    min-width: 24px;
+    }    
+  table.table td a.add {
+        color: #27C46B;
+    }
+    table.table td a.edit {
+        color: #FFC107;
+    }
+    table.table td a.delete {
+        color: #E34724;
+    }
+    table.table td i {
+        font-size: 19px;
+    }
+  table.table td a.add i {
+        font-size: 24px;
+      margin-right: -1px;
+        position: relative;
+        top: 3px;
+    }    
+    table.table .form-control {
+        height: 32px;
+        line-height: 32px;
+        box-shadow: none;
+        border-radius: 2px;
+    }
+  table.table .form-control.error {
+    border-color: #f50000;
+  }
+  table.table td .add {
+    display: none;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+  <div class="container-fluid" style="padding: 0px;">
+    <div id="map" style="position:relative;width:100%;height: 800px;float:left;"></div>
+    <div id="over_map" class="pull-right">
+      <p>
+        <button class="btn btn-primary" aria-expanded="false" onclick="routeopt()">
+              Route Optimizer</button>
+        <label for="files" class="btn btn-primary" >Upload File</label>
+        <input type="file" id="files" style="visibility:hidden;"  />
+        <div class="table-wrapper" >
+          <div class="table-title">
+            <div class="row">
+                <div class="col-sm-8">
+                    <h2><a data-toggle="collapse" href="#collapseExample3" role="button" aria-expanded="false" aria-controls="collapseExample3">Office:</a></h2>
+                </div>
+                <div class="col-sm-4">
+                    
+                </div>
+            </div>
+          </div>
+          <div class="collapse" id="collapseExample3">
+            <div class="card card-body">
+                <input type="text" name="office" id="officeval" placeholder="Bus Depot" style="margin: 5px;" autocomplete="on"> 
+                <button  class="btn btn-primary" aria-expanded="false" style="margin: 5px;" onclick="office()" id="office"> Save </button>
+          <!-- <i id="hide_no_loc_available2">NO BUS AVAILABLE</i> -->
+                <input type="text" name="office2" id="officeval2" placeholder="Office Location" style="margin: 5px;" autocomplete="on"> 
+                <button  class="btn btn-primary" id="office2" aria-expanded="false" style="margin: 5px;" onclick="office2()"> Save </button>
+                <input type="time" id="appt" name="appt" min="00:00" max="23:00"  placeholder="Min time window">
+                <!-- <button  class="btn btn-primary" id="appt" aria-expanded="false" style="margin: 5px;" onclick="mintirp()"> Save </button> -->
+                <input type="time" id="appt2" name="appt2" min="00:00" max="23:00" placeholder="Max time window">
+                <!-- <button  class="btn btn-primary" id="appt2" aria-expanded="false" style="margin: 5px;" onclick="maxtirp()"> Save </button> -->
+                <input type="number" id="trip_time" name="tirp_time" min="1" max="10000" placeholder="Trip Time">
+                <button  class="btn btn-primary" id="trip_time" aria-expanded="false" style="margin: 5px;" onclick="triptime()"> Pickup </button>
+                <button  class="btn btn-primary" id="trip_time" aria-expanded="false" style="margin: 5px;" onclick="triptime2()"> Drop </button>
+            </div>
+          </div>     
+        </div>
+        <br/>
+      </p>
+      <div class="table-wrapper" style="overflow-y: auto; max-height: 300px;  height: auto; padding-right : 15px">
+          <div class="table-title">
+            <div class="row">
+              <div class="col-sm-8">
+                  <h2><a data-toggle="collapse" href="#collapseExample1" role="button" aria-expanded="false" aria-controls="collapseExample1">Location</a></h2>
+              </div>
+                <div class="col-sm-4">
+              </div>
+            </div>
+          </div>
+          <div class="collapse" id="collapseExample1">
+            <div class="card card-body">
+              <div id="loc_searchresult">
+                <table class="table">
+                  <thead>
+                      <tr>
+                        <th>Location</th>
+                        <th>P. No.</th>
+                        <th><button type="button" class="btn btn-info add-new"><!-- <i class="fa fa-plus"></i> -->Add Loc</button></th>
+                      </tr>
+                  </thead>
+                  <tbody >
+                  </tbody>
+                </table>
+              </div>
+              <i id="hide_no_loc_available">NO LOCATION AVAILABLE</i>
+            </div>
+          </div>  
+      </div>
+      <br/>
+      <div class="table-wrapper" style="overflow-y: auto; max-height: 300px;  height: auto; padding-right : 15px">
+        <div class="table-title">
+          <div class="row">
+            <div class="col-sm-8">
+                <h2><a data-toggle="collapse" href="#collapseExample2" role="button" aria-expanded="false" aria-controls="collapseExample2">Buses</a></h2>
+            </div>
+            <div class="col-sm-4">
+                
+            </div>
+          </div>
+        </div>
+        <div class="collapse" id="collapseExample2">
+          <div class="card card-body">
+            <div id="bus_searchresult">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>Bus No</th>
+                    <th>Capacity</th>
+                    <th><button type="button" class="btn btn-info add-new" id="bus"><!-- <i class="fa fa-plus"></i> -->Add Bus</button></th>
+                  </tr>     
+                </thead>
+                <tbody >
+                </tbody>
+              </table>
+              <div id="hide_no_bus_available">  <i >NO BUS AVAILABLE</i></div>
+            </div>
+        <!-- <i id="hide_no_loc_available2">NO BUS AVAILABLE</i> -->
+          </div>
+        </div>      
+      </div>
+    </div>
+    <div id="route_detail">
+      <div id="dropped_nodes"></div>
+      <div id="empty_vehicle"></div>
+      <div id="routes_details"></div>
+    </div>
+    <div id="passanger_detail">
+      <table class="table">
+        <thead>
+            <tr>
+              <th>Employee ID</th>
+              <th>Pickup Address</th>
+              <th>Pickup Time</th>
+              <th>Drop Adress</th>
+              <th>Drop Time</th>
+              <th><button type="button" class="btn btn-info add-new"><!-- <i class="fa fa-plus"></i> -->Add Loc</button></th>
+            </tr>
+        </thead>
+        <tbody >
+        </tbody>
+      </table>
+    </div>
+  </div>
+{% endblock %}
+
+{% block javascript %}
+<!-- </script> -->
+  <script>
+      var globa;
+      var map;
+      var responsestore;
+      var request;
+      var service;
+      var geocoder;
+      var storeLocationDetails=new Map();
+      // var storeOfficeDetails=new Map();
+      var directionsDisplay;
+      var directionsService;
+      var bounds;
+      var citytostore=[],sendtocity=[];
+      var passengernotostore=[],citylattostore=[],citylngtostore=[];
+      var bustostore=[],capacitytostore=[];
+      var end_times=[];
+      var start_times=[];
+      var start=[];
+      var end=[];
+      var bus_starts={};
+      var bus_ends={};
+      var officeloc,officeloc2;
+      var office1Marker,office2Marker;
+      var count = 0;
+      var pickup=[];    
+      var stoplocations=[];
+      var ch=0;
+      var ch2=0;
+      var directionsService9;
+      var directionsDisplay9;
+      var file,fr;
+      var previous_result={'ga':false};
+      var csvdata=[];
+      var realtiveToAbsolute;
+      var max_trip_time;
+      function office(){
+        // console.log(office1Marker);
+        if (office1Marker!=null){
+          office1Marker.setMap(null);
+        }
+        office1Marker=addOfficeMarker(officeloc,'red');
+        storeLocationDetails[document.getElementById('officeval').value]=office1Marker;
+        officeloc="";
+      }
+      function office2(){
+        // console.log(office2Marker);
+        if(office2Marker!=null){
+          office2Marker.setMap(null);
+        }
+        office2Marker=addOfficeMarker(officeloc2,'green');
+        storeLocationDetails[document.getElementById('officeval2').value]=office2Marker;
+        officeloc2="";
+      }
+
+      function triptime(){
+        var start_time =  document.getElementById('appt').value;
+        var end_time = document.getElementById('appt2').value;
+        max_trip_time = Number(document.getElementById('trip_time').value);
+        var s = moment.duration(end_time,"HH:mm");
+        var diff = moment.duration(end_time,"HH:mm");
+        var ss  = moment.duration(start_time,"HH:mm");
+        var lo = moment.duration(diff.subtract(ss)).asMinutes();
+        s.subtract(max_trip_time,'minutes');
+        realtiveToAbsolute = moment.utc(+s).format('HH:mm');
+        end_times.push(max_trip_time - lo);
+        end_times.push(max_trip_time);
+        pickup =1;
+      }
+      function triptime2(){
+        var start_time =  document.getElementById('appt').value;
+        var end_time = document.getElementById('appt2').value;
+        max_trip_time = Number(document.getElementById('trip_time').value);
+        var s = moment.duration(end_time,"HH:mm");
+        var diff = moment.duration(end_time,"HH:mm");
+        var ss  = moment.duration(start_time,"HH:mm");
+        var lo = moment.duration(diff.subtract(ss)).asMinutes();
+        s.subtract(max_trip_time,'minutes');
+        realtiveToAbsolute = moment.utc(+ss).format('HH:mm');
+        start_times.push(0);
+        start_times.push(lo);
+        pickup =0;
+      }
+      $("#files").change(function() {
+        console.log("in change file");
+        for(var i=0;i<csvdata.length;i++){
+          delete storeLocationDetails[csvdata[i]];
+          storeLocationDetails[csvdata[i]].setMap(null);   
+          if (stoplocations.indexOf(csvdata[i]) > -1) {
+            stoplocations.splice(stoplocations.indexOf(csvdata[i]), 1);
+          }
+          if(i==0)
+          alert("DELETED"); 
+        }
+        csvdata=[];
+        upload();
+      });
+
+      function upload()
+      {          
+        console.log("in upload");
+        file=""; fr="";
+        if (!window.File || !window.FileReader || !window.FileList || !window.Blob) {
+          alert('The File APIs are not fully supported in this browser.');
+          return;
+        }   
+
+       var input = document.getElementById('files');
+        if (!input) {
+          alert("Um, couldn't find the files element.");
+        }
+        else if (!input.files) {
+          alert("This browser doesn't seem to support the `files` property of file inputs.");
+        }
+        else{
+         file = input.files[0];
+         fr = new FileReader();
+          fr.onload = receivedText;
+          //fr.readAsText(file);
+          fr.readAsText(file);            
+        }
+      }
+
+      function countInArray(array, what) {
+        var count = 0;
+        for (var i = 0; i < array.length; i++) {
+            if (array[i] === what) {
+                count++;
+            }
+        }
+        return count;
+      }
+      function receivedText() {
+        console.log("in receivedText");
+        // console.log(fr.result);
+        dataRows=fr.result.split("\n");
+
+        console.log(dataRows);
+        var noOfPsngr=parseInt(dataRows[0].split(",")[1]);
+        var noOfBus=parseInt(dataRows[1].split(",")[1]);
+        // var uniqueBusStop;
+        // var countInfoUpto=2;
+        var headerSeprator=2;
+
+        var headPosition=4;
+        var passangerDetailsTill=headPosition+noOfPsngr;
+
+
+        var stud_list = [];
+        var location_set = new Set();
+        for(headPosition;headPosition<passangerDetailsTill;headPosition++){
+          var currPsngr=dataRows[headPosition].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+          console.log(currPsngr);
+
+          var stud_dict = {};
+          geocoder.geocode( { 'address': address}, );
+          stud_dict["employee_id"] = currPsngr[0];
+          stud_dict["pickup"] = currPsngr[1];
+          stud_dict["start_time"] = parseInt(currPsngr[2]);
+          stud_dict["end_time"] = parseInt(currPsngr[3]);
+
+          stud_list.push(stud_dict);
+
+          location_set.add(currPsngr[1]);
+
+        }
+        location_set = Array.from(location_set);
+        console.log("all locations are here");
+        console.log(location_set);
+
+        //var geoc = new google.maps.Geocoder();
+
+        
+        $.ajax({
+          url: "/busStopSelection/",
+          data: {'csrfmiddlewaretoken':'{{csrf_token}}',
+          'passenger':JSON.stringify(stud_list),
+          'busStops':JSON.stringify(location_set)
+          },
+          cache: false,
+          type: "POST",
+          success:function(response){
+            console.log("success");
+            console.log(response);
+          },
+          error: function(xhr) {
+              console.log("FAILED");
+              console.log(xhr);
+          }        
+        });
+        
+        headPosition=headPosition+headerSeprator;
+        var busDetailsTill=headPosition+noOfBus;
+        for(headPosition;headPosition<busDetailsTill;headPosition++){
+          var currBus=dataRows[headPosition].split(",");
+          var currTable = $('#collapseExample2').find('tbody');
+          var row = '<tr>' +
+              '<td>'+currBus[0]+'</td>' +
+              '<td>'+currBus[1]+'</td>' +
+          '<td><a class="add" title="Add" data-toggle="tooltip"><i class="material-icons">&#xE03B;</i></a><a class="edit" title="Edit" data-toggle="tooltip"><i class="material-icons">&#xE254;</i></a><a class="delete" title="Delete" data-toggle="tooltip"><i class="material-icons">&#xE872;</i></a></td>'+
+          '</tr>';
+          currTable.prepend(row);
+        }
+        var x=[{'busStopName':'Devegowda petrol bunk, Gowdanapalya, Uttarahalli Hobli, Bengaluru,','psngrCount':10},{'busStopName':'RNSIT, Channasandra, RR Nagar, Bengaluru,','psngrCount':20},{'busStopName':'PES College Road, Phase 1, Banashankari Stage I, Banashankari, Bengaluru','psngrCount':15}];
+        var geocoder = new google.maps.Geocoder();
+        for(var i=0;i<x.length;i++){
+          var currStop=x[i];
+          console.log(currStop);
+          geocoder.geocode( { 'address': x[i]['busStopName']}, makeCallback(currStop));
+          console.log(storeLocationDetails);
+        }
+        // function makeCallback2(currPsngr){
+        //   var geocodeCallBack=function(results, status) {
+        //     if (status == google.maps.GeocoderStatus.OK){
+        //       console.log(results);
+        //     }
+        //   }
+        //   return geocodeCallBack;
+        // }
+        function makeCallback(currStop) {
+          var geocodeCallBack=function(results, status) {
+            if (status == google.maps.GeocoderStatus.OK){
+              // console.log(results[0].formatted_address);
+              // console.log(currStop);
+              var marker = new google.maps.Marker({
+                map: map,
+                title: results[0].formatted_address,
+                position: results[0].geometry.location,
+                provideRouteAlternatives: true,
+                animation: google.maps.Animation.DROP
+              });
+              storeLocationDetails[currStop['busStopName']]=marker;
+              console.log("printing location");
+              console.log(storeLocationDetails);
+              var row = '<tr>' +
+                    '<td>'+currStop['busStopName']+'</td>' +
+                    '<td>'+currStop['psngrCount']+'</td>' +
+                '<td><a class="add" title="Add" data-toggle="tooltip"><i class="material-icons">&#xE03B;</i></a><a class="edit" title="Edit" data-toggle="tooltip"><i class="material-icons">&#xE254;</i></a><a class="delete" title="Delete" data-toggle="tooltip"><i class="material-icons">&#xE872;</i></a></td>'+
+                '</tr>';
+                
+              // $(this).closest('card').find('i').hide();
+              var currTable = $('#collapseExample1').find('tbody');
+              // console.log(currTable);
+              currTable.prepend(row); 
+            }
+          }
+          return geocodeCallBack;
+        }
+        alert("UPLOADE DONE!!");
+      }           
+
+      function routeopt(){
+        console.log("storeLocationDetails");
+        console.log(storeLocationDetails);
+        console.log("stoplocations");
+        console.log(stoplocations);
+        var locations=[];
+        var busdetails=[];
+        var start=[];
+        var end=[];
+        var office1={
+          'name':$('#officeval').val(),
+          'count':0,
+          'arr':1,
+          'depa':1,
+          'lat':office1Marker.getPosition().lat(),
+          'lng':office1Marker.getPosition().lng()
+        };
+        var office2={
+          'name':$('#officeval2').val(),
+          'count':0,
+          'arr':1,
+          'depa':1,
+          'lat':office2Marker.getPosition().lat(),
+          'lng':office2Marker.getPosition().lng()
+        };
+        //     var office1={
+        //   'name':$('#officeval').val(),
+        //   'count':0,
+        //   'arr':1,
+        //   'depa':1,
+        //   'lat':12.33,
+        //   'lng':70.88
+        // };
+        // var office2={
+        //   'name':$('#officeval2').val(),
+        //   'count':0,
+        //   'arr':1,
+        //   'depa':1,
+        //   'lat':12.34,
+        //   'lng':70.78
+        // };
+        locations.push(office1);
+        locations.push(office2);
+        $('#loc_searchresult > table > tbody > tr').each(function() {
+          console.log("finding locations");
+          var currLocation={};
+          $(this).children('td:nth-child(1)').each(function(){
+            currLocation['name']=$(this).html();
+          });
+          $(this).children('td:nth-child(2)').each(function(){
+            currLocation['count']=$(this).html();
+          });
+          currLocation['arr']=1;
+          currLocation['depa']=1;
+          currLocation['lat']=storeLocationDetails[currLocation['name']].getPosition().lat();
+          currLocation['lng']=storeLocationDetails[currLocation['name']].getPosition().lng();
+          console.log(currLocation['name']);
+          console.log(storeLocationDetails[currLocation['name']]);
+          locations.push(currLocation);
+        });
+        $('#bus_searchresult > table > tbody > tr').each(function() {
+          var currBus={};
+          $(this).children('td:nth-child(1)').each(function(){
+            currBus['busname']=$(this).html();
+          })
+          $(this).children('td:nth-child(2)').each(function(){
+            currBus['buscapacity']=$(this).html();
+          })
+          busdetails.push(currBus);
+          start.push(0);
+          end.push(1);
+        });
+        console.log(locations);
+        console.log(busdetails);
+        console.log("prev result")
+        console.log(previous_result)
+        $.ajax({
+          url: "route/",
+          data: {'csrfmiddlewaretoken':'{{csrf_token}}','locations':JSON.stringify(locations),
+          'busdetails':JSON.stringify(busdetails),
+          'starts':JSON.stringify(start),
+          'ends' : JSON.stringify(end),
+          // 'pickup' :JSON.stringify(pickup),
+          'previous_result2':JSON.stringify(previous_result)
+          },
+          cache: false,
+          type: "POST",
+          success: function(response) {
+            console.log("SUCCESS");
+            console.log(response);
+            responsestore=response['routes'];
+            console.log(response['routes'][0]['nodes'][0]);
+            for(var i =0;i<response['routes'].length;i++){  
+              //calcRoute(response['routes'][i]);
+              calcRoute2(response['routes'][i]);
+              console.log(response['routes'][i]['nodes']);
+            }
+            // boundall();
+           // distancematrix(responsestore,responsestore);
+          //  function print(response) {
+
+          //   }
+            previous_result['value'] = response['routes']
+            previous_result['status'] = true;
+            for(var i=0;i<response['dropped_nodes'].length;i++){
+              console.log("in drop");
+              $('#dropped_nodes').append('<p>'+response['dropped_nodes'][i]+'</p>');
+            }
+            for(var i=0;i<response['empty_vehicle'].length;i++){
+              console.log("in drop");
+              $('#empty_vehicle').append('<p>'+response['empty_vehicle'][i]+'</p>');
+            }
+            for(var i=0;i<response['routes'].length;i++){
+              for(var key in response['routes'][i]){
+                console.log("in drop");
+                $('#routes_details').append('<p>'+ key + response['routes'][key]+'</p>')
+              }
+            }
+           },
+            error: function(xhr) {
+              console.log("FAILED");
+              console.log(xhr);
+            }
+          });
+         return false;
+      }
+      
+      document.getElementById('office').disabled = false;
+      function initMap() {  
+
+        var myLatLng = {lat: 20, lng: 78};
+        directionsService = new google.maps.DirectionsService();
+        map = new google.maps.Map(document.getElementById('map'), {
+          zoom: 4,
+          center: myLatLng,
+          // disableDefaultUI: true
+        });
+        directionsDisplay = new google.maps.DirectionsRenderer({suppressMarkers: true});
+        service = new google.maps.DistanceMatrixService;
+        directionsDisplay.setMap(map);
+        bounds = new google.maps.LatLngBounds();
+
+        var inputof = document.getElementById('officeval');
+        var autocomplete = new google.maps.places.Autocomplete(inputof);
+        google.maps.event.addListener(autocomplete, 'place_changed', function () {
+            var place = autocomplete.getPlace();
+              // document.getElementById('city2').value = place.name;
+              officeloc = place;
+              
+          });
+
+        var inputof2 = document.getElementById('officeval2');
+        var autocomplete2 = new google.maps.places.Autocomplete(inputof2);
+        google.maps.event.addListener(autocomplete2, 'place_changed', function () {
+            var place2 = autocomplete2.getPlace();
+              // document.getElementById('city2').value = place.name;
+              officeloc2 = place2;
+              
+          });
+
+        var inp=inputof2.value;
+        if(inp != "")document.getElementById('office2').disabled = false;
+
+      }
+      function counter(){
+        var c=0;
+        for(key in storeLocationDetails){
+         c++;
+        }
+        return c;
+      }
+     function addInfoWindow(marker, message) {
+        var infoWindow = new google.maps.InfoWindow({
+            content: message
+        });
+        google.maps.event.addListener(marker, 'click', function () {
+            infoWindow.open(map, marker);
+        });
+      }
+      function addMarker(location) {
+        console.log("in marker");
+        marker = new google.maps.Marker({
+            position: location.geometry.location,
+            map: map,
+            text:location.name,
+            icon: {
+              url: "http://maps.google.com/mapfiles/ms/icons/green-dot.png"
+            },
+            animation: google.maps.Animation.DROP
+
+        });
+
+        // var inputof2 = document.getElementById('officeval2');
+        storeLocationDetails[document.getElementById('officeval').value]=marker;
+        stoplocations.push(document.getElementById('officeval').value);
+        // passengernotostore.push(0);
+        // alert(passengernotostore);
+        //storeOfficeDetails[location]=marker;
+        addInfoWindow(marker,location.name);
+      }
+      function addOfficeMarker(address,color) {
+        console.log("in marker");
+        console.log(address);
+        marker = new google.maps.Marker({
+            position: address.geometry.location,
+            map: map,
+            icon: {
+              url: "http://maps.google.com/mapfiles/ms/icons/"+color+"-dot.png"
+            },
+            animation: google.maps.Animation.DROP
+
+        });
+        console.log(address.formatted_address);
+        storeLocationDetails[address.formatted_address]=marker;
+        stoplocations.push(address.formatted_address);
+        addInfoWindow(marker,location.name);
+        return marker
+      }
+      function calcRoute2(response) {
+        var storetempmarker=[];
+        var start = new google.maps.LatLng(response['nodes'][0]["lat"],response['nodes'][0]["lng"]);
+        var k=response['nodes'].length-1;
+        var end = new google.maps.LatLng(response['nodes'][k]["lat"],response['nodes'][k]["lng"]);
+
+        var request = {
+            origin: start,
+            waypoints:[],
+            destination: end,
+            travelMode: google.maps.TravelMode.DRIVING
+        };
+
+        for(var i=1;i<response['nodes'].length-1;i++){
+            console.log(i+"===========================");
+            console.log(response['nodes'][i]);
+            marker2 = new google.maps.Marker({
+            map: map,
+            position: new google.maps.LatLng(response['nodes'][i]["lat"],response['nodes'][i]["lng"]),
+            animation: google.maps.Animation.DROP
+          }); 
+          request.waypoints.push({
+            location: marker2.getPosition(),
+            stopover: true
+          });
+          storetempmarker.push(marker2);
+        }
+                var color=[];
+        for(var i=0;i<response['nodes'].length;i++)
+          {
+            color.push(response['color']);
+          }
+
+        directionsDisplay9 = new google.maps.DirectionsRenderer({
+          // suppressMarkers: false,
+          // suppressInfoWindows: false,
+          preserveViewport: true
+        });  
+        //COLOUR
+        directionsDisplay9.setOptions({
+          polylineOptions: {
+          strokeColor: color[i]
+          }
+        });
+        directionsDisplay9.setMap(map);
+        directionsService9 = new google.maps.DirectionsService();
+        directionsService9.route(request, function(result, status) {
+          if (status == google.maps.DirectionsStatus.OK) {
+            directionsDisplay9.setDirections(result);
+          }
+        });
+        for(var i=0;i<response['nodes'].length;i++){
+
+            console.log("LOC "+i+" ===========");
+            console.log(response['nodes'][i]["lat"] + response['nodes'][i]["lng"] );
+            console.log("LOC=====OVER======");
+
+          var e=new google.maps.LatLng(response['nodes'][i]["lat"], response['nodes'][i]["lng"]);
+          bounds.extend(e);
+        }
+        map.fitBounds(bounds);
+
+
+      }  
+      function calcRoute(response) {
+        var locations2 = [
+          ['dsv',  122, 127]
+        ]; 
+        var temp2=[],color=[];
+        for(var i=0;i<response['nodes'].length;i++){
+          temp2=[];
+          color.push(response['color']);
+          temp2.push(response['nodes'][i]["name"]);      
+          temp2.push(response['nodes'][i]["lat"]);
+          temp2.push(response['nodes'][i]["lng"]);
+          locations2.push(temp2);
+        }
+        console.log("LOC===========");
+        console.log(locations2);
+        // alert(locations2);
+        console.log("LOC=====OVER======");
+        
+        var marker2, i;
+        var request = {
+          travelMode: google.maps.TravelMode.DRIVING
+        };
+        for (i = 1; i < locations2.length; i++) {
+          marker2 = new google.maps.Marker({
+            map: map,
+            position: new google.maps.LatLng(locations2[i][1], locations2[i][2]),
+             animation: google.maps.Animation.DROP
+          });
+          if (i == 1) {
+            request.origin = marker2.getPosition(); 
+            // marker.setIcon('http://maps.google.com/mapfiles/ms/icons/green-dot.png');
+          }
+          else if (i == locations2.length - 1) {
+            request.destination = marker2.getPosition();
+            // marker.setIcon('http://maps.google.com/mapfiles/ms/icons/green-dot.png');
+          }
+          else {
+            if (!request.waypoints) request.waypoints = [];
+            request.waypoints.push({
+              location: marker2.getPosition(),
+              stopover: true
+            });
+          }
+        }
+        var directionsDisplay9 = new google.maps.DirectionsRenderer({
+          suppressMarkers: false,
+          suppressInfoWindows: true
+        });
+        
+        //COLOUR
+        directionsDisplay9.setOptions({
+          polylineOptions: {
+          strokeColor: color[0]
+          }
+        });
+        directionsDisplay9.setMap(map);
+        var directionsService9 = new google.maps.DirectionsService();
+        directionsService9.route(request, function(result, status) {
+          if (status == google.maps.DirectionsStatus.OK) {
+            directionsDisplay9.setDirections(result);
+          }
+        });
+      }
+     
+</script>
+<script async defer src="https://maps.googleapis.com/maps/api/js?key=YOUR_API&libraries=places&callback=initMap">
+</script>
+<script type="text/javascript">
+
+function boundall(){
+  bounds = new google.maps.LatLngBounds();
+  for(key in storeLocationDetails){
+    var e = new google.maps.LatLng(storeLocationDetails[key].getPosition().lat(),storeLocationDetails[key].getPosition().lng());
+    bounds.extend(e);
+  }
+  map.fitBounds(bounds);
+}
+
+function distancematrix(response1,response2){
+  // alert("IN");
+    var markersArray = [];
+    var geocoder = new google.maps.Geocoder();        
+    service.getDistanceMatrix({
+      origins: response1,//[{},{},]
+      destinations: response2,//[{},{}]
+      travelMode: 'DRIVING',
+      unitSystem: google.maps.UnitSystem.METRIC,
+    }, function(response, status) {
+      if (status !== 'OK') {
+        alert('Error was: ' + status);
+      } else {
+        var originList = response.originAddresses;
+        var destinationList = response.destinationAddresses;
+        var outputDiv;
+        
+        deleteMarkers(markersArray);
+
+        var showGeocodedAddressOnMap = function(asDestination) {
+          return function(results, status) {
+            if (status === 'OK') {
+              map.fitBounds(bounds.extend(results[0].geometry.location));
+              markersArray.push(new google.maps.Marker({
+                map: map,
+                position: results[0].geometry.location,
+                 animation: google.maps.Animation.DROP
+              }));
+            } else {
+              alert('Geocode was not successful due to: ' + status);
+            }
+          };
+        };
+
+        for (var i = 0; i < originList.length; i++) {
+          var results = response.rows[i].elements;
+          geocoder.geocode({'address': originList[i]},
+              showGeocodedAddressOnMap(false));
+          for (var j = 0; j < results.length; j++) {
+            geocoder.geocode({'address': destinationList[j]},
+                showGeocodedAddressOnMap(true));
+            outputDiv += originList[i] + "to"  + destinationList[j] +
+                " : " + results[j].distance.text +  "in"  +
+                results[j].duration.text +" ";
+          }
+        
+        console.log(outputDiv);
+        }
+       
+      }
+    });
+
+}
+
+function deleteMarkers(markersArray) {
+    for (var i = 0; i < markersArray.length; i++) {
+      markersArray[i].setMap(null);
+    }
+    markersArray = [];
+  }
+
+function isEmpty( obj ) {
+    for ( var name in obj ) {return false;}
+    return true;
+}
+
+function hide_or_show_no_location(){
+  if(!isEmpty(storeLocationDetails))
+      document.getElementById("hide_no_loc_available").style.display = "none";
+  else 
+    document.getElementById("hide_no_loc_available").style.display = "block";
+}
+
+function hide_or_show_no_bus(){
+  bustostore=[];
+  // start=[];
+  // end=[];
+  $('#bus_searchresult > table > tbody > tr').each(function() {
+    $(this).children('td:nth-child(1)').each(function(){
+      var data = $(this).html();
+    // alert("BUS"+data);
+    bustostore.push(data);
+    // start.push(0);
+    // end.push(1);
+    })
+  });
+
+  if(!isEmpty(bustostore)==0)
+    {document.getElementById("hide_no_bus_available").style.display = "block";
+    }
+  else
+    document.getElementById("hide_no_bus_available").style.display = "none";
+}
+
+var glob;
+$(document).ready(function()
+{
+  document.getElementById("hide_no_loc_available").style.display = "block"; 
+  $('[data-toggle="tooltip"]').tooltip();
+  var actions = $("table td:last-child").html();
+  // Append table with add row form on add new button click
+  $(".add-new").click(function(){
+    
+    hide_or_show_no_location();  
+    console.log(isEmpty(storeLocationDetails));
+    
+    $(this).attr("disabled", "disabled");
+    
+    var row = '<tr>' +
+        '<td><input type="text" class="form-control" name="name" id="name"></td>' +
+        '<td><input type="text" class="form-control" name="department" id="department"></td>' +
+    '<td><a class="add" title="Add" data-toggle="tooltip"><i class="material-icons">&#xE03B;</i></a><a class="edit" title="Edit" data-toggle="tooltip"><i class="material-icons">&#xE254;</i></a><a class="delete" title="Delete" data-toggle="tooltip"><i class="material-icons">&#xE872;</i></a></td>'+
+    '</tr>';
+    
+    // $(this).closest('card').find('i').hide();
+      $('#hide_no_bus_available > div > i ').hide();
+    hide_or_show_no_bus();
+    var currTable = $(this).closest('table');
+    currTable.prepend(row);  
+    currTable.find('tbody').find('tr').eq(0).find(".add, .edit").toggle();
+
+    // hide_or_show_no_bus();
+    // $("table tbody tr").eq(0).find(".add, .edit").toggle();
+    $('[data-toggle="tooltip"]').tooltip();
+    if($(this.closest('.collapse')).attr('id')==="collapseExample1"){
+      var input = document.getElementById('name');
+      // console.log(input);
+      var autocomplete = new google.maps.places.Autocomplete(input);
+      google.maps.event.addListener(autocomplete, 'place_changed', function () {
+          var place = autocomplete.getPlace();
+          
+          // document.getElementById('city2').value = place.name;
+          // Lat = place.geometry.location.lat();
+          // Lng = place.geometry.location.lng();
+      });
+    
+      
+      }
+});
+
+
+
+
+  // Add row on add button click
+  $(document).on("click", ".add", function(){
+    var empty = false;
+    var input = $(this).parents("tr").find('input[type="text"]');
+    
+    input.each(function(){
+      if(!$(this).val()){
+        $(this).addClass("error");
+        empty = true;
+      } 
+      else{
+        $(this).removeClass("error");
+      }
+    });
+
+    $(this).parents("tr").find(".error").first().focus();
+
+    if(!empty){
+      document.getElementById("hide_no_loc_available").style.display = "none";
+      var address="hello";
+      input.each(function(){
+        $(this).parent("td").html($(this).val());
+        if(address==="hello"){
+          address=$(this).val();
+          }
+      });     
+    
+      $(this).parents("tr").find(".add, .edit").toggle();
+      $(".add-new").removeAttr("disabled");
+      
+      if(input.length!=1 && $(this.closest('.collapse')).attr('id')==="collapseExample1"){
+        var geocoder = new google.maps.Geocoder();
+        geocoder.geocode( { 'address': address}, function(results, status) {
+          if (status == google.maps.GeocoderStatus.OK)
+          {
+            console.log(results);
+           alert("HI");
+            var marker = new google.maps.Marker({
+              map: map,
+              title: address,
+              position: results[0].geometry.location,
+              provideRouteAlternatives: true,
+               animation: google.maps.Animation.DROP
+            });
+            ch2=counter();
+            storeLocationDetails[address]=marker;
+               var contentString = '<div id="content">'+
+            '<div id="siteNotice">'+
+            '</div>'+
+            '<h4 id="firstHeading" class="firstHeading">'+address+'</h4>'+
+            '<div id="bodyContent">'+
+            '<p><i>ARRIVAL:</i></p>'+
+            '<p><i>DEPARTURE:</i></p>'+
+            '<p><i>No. of PSNGR:</i></p>'+
+            '</div>'+
+            '</div>';
+            addInfoWindow(storeLocationDetails[address],contentString);
+            stoplocations.push(address);
+            boundall();
+            
+          }
+        });
+      //   alert("1");
+      // if(ch==1 && ch2>3){
+      //   alert("2");
+      // directionsDisplay9.setMap(null); 
+      //   routeopt();
+      // }
+      }
+      
+    }   
+});
+  
+
+  // Edit row on edit button click
+  $(document).on("click", ".edit", function(){ 
+
+    $(this).parents("tr").find("td:not(:last-child):not(:first-child)").each(function(){
+      $(this).html('<input type="text" class="form-control" value="' + $(this).text() + '">');
+    });   
+    $(this).parents("tr").find(".add, .edit").toggle();
+    $(".add-new").attr("disabled", "disabled");
+  });
+
+
+  // Delete row on delete button click
+  $(document).on("click", ".delete", function(){
+    console.log(storeLocationDetails);
+    // hide_or_show_no_location();
+    $('#hide_no_bus_available > div > i ').hide();
+    // $(this).closest('card').find('#hide_no_bus_available').hide();
+      
+    var address=$(this).parents("tr").find("td:first-child").text();
+    if($(this.closest('.collapse')).attr('id')==="collapseExample1"){
+      storeLocationDetails[address].setMap(null);      
+      
+      // delete indexToAdress[addressToIndex[address]];
+      // delete addressToIndex[address];
+      delete storeLocationDetails[address]; 
+      
+      if (stoplocations.indexOf(address) > -1) {
+        stoplocations.splice(stoplocations.indexOf(address), 1);
+      }
+
+      boundall();
+      
+      hide_or_show_no_location();
+      hide_or_show_no_bus();
+      console.log(storeLocationDetails);
+    }
+    $(this).parents("tr").remove();
+    $(".add-new").removeAttr("disabled");
+    });
+    // hide_or_show_no_bus();
+});
+
+
+
+</script>  
+
+{% endblock %}
