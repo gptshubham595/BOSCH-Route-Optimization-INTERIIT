@@ -1,6 +1,6 @@
 # BOSCH-Route-Optimization-INTERIIT
 
-  Route Optimization which is based on Genetic Algotrithm and Taabu Search in order to find the best possible paths in order to pickup employees in certain time window.
+  Route Optimization which is based on Genetic Algotrithm and Tabu Search in order to find the best possible paths in order to pickup employees in certain time window.
   
 ## PROBLEM STATEMENT
  
